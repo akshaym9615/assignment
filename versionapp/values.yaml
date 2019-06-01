@@ -1,0 +1,4 @@
+replicaCount: 1
+IMAGE_VERSION: 0.0.1
+IMAGE_REGISTRY: gcr.io/zen-genius-214716/
+LOGPATH: /var/log/applogs/dev/version-app/
