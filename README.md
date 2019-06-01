@@ -1,4 +1,4 @@
-                                                 # Assignment (Readme)
+# Assignment (Readme)
 
 
 
@@ -13,10 +13,11 @@
 
 ## Deployment –
 
-•	Here we will be using Helm Charts. Helm uses a packaging format called charts. A chart is a collection of files that describe a related set of Kubernetes resources.<br/>
+•	Here we will be using Helm Charts. Helm uses a packaging format called charts. A chart is a collection of files that           describe a related set of Kubernetes resources.<br/>
 •	I have created the helm charts for nodejs service.
 
 •	Now the deployment steps will be as follows –
+
 1.	Now as we have K8s cluster up and running, we will be creating namespace "dev".
 2.	Build the docker image by running this command in “Dockerfile” directory –
 
