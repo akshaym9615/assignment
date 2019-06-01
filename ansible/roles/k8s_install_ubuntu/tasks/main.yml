@@ -1,0 +1,149 @@
+---
+# tasks file for k8s_install_ubuntu
+
+- name: Uninstall un-supported version
+  apt: name="{{ item }}" state=absent
+  with_items:
+    - docker
+    - docker-engine
+    - docker.io
+    - lxc-docker
+  tags: k8s_install
+
+- name: Package for docker-engine
+  apt: name="{{ item }}" state=present
+  with_items:
+    - apt-transport-https
+    - software-properties-common
+    - linux-image-extra-virtual
+    - libltdl7
+  tags: k8s_install
+
+- name: Install docker
+  apt: name=docker.io state=present
+    upgrade: yes
+    update_cache: yes
+  tags: k8s_install
+
+- name: Start docker
+  service: name=docker state=started enabled=yes
+  tags: k8s_install
+
+- name: Change storage driver
+  block:
+    - service: name=docker state=stopped
+    - copy:
+        dest: /etc/docker/daemon.json
+        content: |
+          {
+              "storage-driver": "overlay2"
+          }
+        mode: 0755
+    - service: name=docker state=started
+  tags:
+    - overlay
+    - k8s_install
+
+- name: remove Kubernetes
+  shell: 'apt-get remove kube* -y'
+  tags: k8s_install
+
+#KUBERNETES
+
+- name: Install Pre-Req
+  apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  with_items:
+    - apt-transport-https
+    - curl
+  tags: k8s_install
+
+- name: Adding the key
+  block:
+    - shell: 'curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -'
+    - shell: 
+        cmd: |
+          cat <<EOF >/etc/apt/sources.list.d/kubernetes.list
+          deb https://apt.kubernetes.io/ kubernetes-xenial main
+  tags: k8s_install
+
+- name: install packages
+  block:
+    - apt: update_cache=yes name="{{ kubeadm_apt_packages|list }}" state=present
+    - shell: 'apt-mark hold kubelet kubeadm kubectl'
+  tags: k8s_install 
+
+- name: reload systemd
+  systemd:
+    daemon_reload: yes
+  tags: k8s_install
+
+- name: Start kubelet
+  service: name=kubelet state=started enabled=yes
+  tags: k8s_install
+
+
+#MASTER
+
+- name: Reset Kubernetes component
+  shell: "kubeadm reset"
+  register: reset_cluster
+  when: 
+    - inventory_hostname in groups['k8s_master']
+  tags: k8s_install
+
+- name: Init Kubernetes cluster
+  when:
+    - reset_cluster|succeeded
+    - inventory_hostname in groups['k8s_master']
+  shell: "kubeadm init"
+  tags: k8s_install
+
+- name: Copy the dashboard file
+  copy: src="files/kubernetes-dashboard.yaml" dest=/tmp/kubernetes-dashboard.yaml
+  tags: k8s_install
+  when: inventory_hostname in groups['k8s_master']
+
+- name: Install weave net and dashboard with roles
+  shell: |
+    export KUBECONFIG=/etc/kubernetes/admin.conf
+    export kubever=$(kubectl version | base64 | tr -d '\n')
+    kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$kubever"
+    kubectl create -f /tmp/kubernetes-dashboard.yaml
+  tags: k8s_install
+  when: inventory_hostname in groups['k8s_master']
+
+#NODES
+
+- name: Generate join token
+  shell: kubeadm token create --print-join-command --ttl 0
+  register: kubeadm_join_cmd
+  delegate_to: "{{ groups['k8s_master'][0] }}"
+  when:
+    - inventory_hostname in groups['k8s_nodes']
+  tags: k8s_install
+
+- set_fact:
+    kubeadm_join: "{{ kubeadm_join_cmd.stdout }}"
+  when:
+    - inventory_hostname in groups['k8s_nodes']
+  tags: k8s_install
+
+- debug: var=kubeadm_join
+  when:
+    - inventory_hostname in groups['k8s_nodes']
+  tags: k8s_install
+
+- name: Store join command
+  action: copy content="{{ kubeadm_join }}" dest="/etc/kubernetes/kubeadm-join.command"
+  when:
+    - inventory_hostname in groups['k8s_nodes']
+  tags: k8s_install
+
+- name: Run kubeadm join
+  shell: "{{ kubeadm_join }}"
+  when:
+    - inventory_hostname in groups['k8s_nodes']
+  tags: k8s_install

@@ -1,0 +1,217 @@
+---
+- yum: name=net-snmp* state=absent
+  tags: k8s_install
+
+- name: flush iptables rule
+  shell: 'iptables -F'
+  tags: k8s_install 
+
+- name: Disable firewall
+  service: name=firewalld state=stopped
+  ignore_errors: yes
+  tags: k8s_install
+
+- name: change kernel params
+  blockinfile:
+    path: /etc/sysctl.conf
+    block: |
+      net.ipv4.ip_forward = 1
+      net.bridge.bridge-nf-call-ip6tables = 1
+      net.bridge.bridge-nf-call-iptables = 1
+    backup: yes
+    insertafter: EOF
+  tags:
+    - system
+  tags: k8s_install
+
+- name: (Temp) change kernel params
+  shell: |
+    systemctl restart network
+    /usr/sbin/sysctl --system
+    /usr/sbin/swapoff -a
+  tags:
+    - system
+    - k8s_install
+
+- name: Uninstall un-supported version
+  yum: name="{{ item }}" state=absent
+  with_items:
+    - docker
+    - docker-common
+    - container-selinux
+    - docker-selinux
+  tags: k8s_install
+
+- name: Install yum-utils
+  yum:
+    name: yum-utils
+    state: present
+  tags: k8s_install
+
+- name: Download the docker package
+  copy:
+    src: "{{ item }}"
+    dest: "/tmp/{{ item }}"
+  with_items:
+    - docker-engine-selinux-17.05.0.ce-1.el7.centos.noarch.rpm
+    - docker-engine-1.12.6-1.el7.centos.x86_64.rpm
+  tags: k8s_install
+
+- name: Install docker
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - /tmp/docker-engine-selinux-17.05.0.ce-1.el7.centos.noarch.rpm
+    - /tmp/docker-engine-1.12.6-1.el7.centos.x86_64.rpm
+  tags: k8s_install
+
+- name: Start docker
+  service: name=docker state=started enabled=yes
+  tags: k8s_install
+
+- name: Change storage driver
+  block:
+    - service: name=docker state=stopped
+    - copy:
+        dest: /etc/docker/daemon.json
+        content: |
+          {
+              "storage-driver": "devicemapper"
+          }
+        mode: 0755
+    - lineinfile:
+        path: /usr/lib/systemd/system/docker.service
+        line: 'MountFlags=slave'
+        insertafter: '^Type=notify'
+        backup: yes
+    - service: name=docker state=started
+  tags:
+    - overlay
+    - k8s_install
+
+- name: Add repo file
+  copy: src=kubernetes.repo dest=/etc/yum.repos.d/kubernetes.repo owner=root group=root mode=0644
+  tags: k8s_install
+
+- name: Upgrade yum cache index
+  shell: 'yum makecache fast -y'
+  tags: k8s_install
+
+- name: disable SELinux
+  command: "setenforce 0"
+  ignore_errors: yes
+  tags: k8s_install
+
+- name: remove Kubernetes
+  yum:
+    name: 'kube*'
+    state: absent
+  tags:
+    - uninstall
+    - k8s_install  
+
+- name: install packages
+  yum: update_cache=yes name="{{ kubeadm_yum_packages|list }}" state=present
+  tags: k8s_install
+
+- name: Change conf file
+  lineinfile:
+    path: /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+    regexp: '^Environment="KUBELET_CGROUP_ARGS='
+    state: absent
+    backup: yes
+  tags:
+    - conf
+    - k8s_install
+
+- name: Change conf file
+  lineinfile:
+    path: /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+    line: 'Environment="KUBELET_CGROUP_ARGS=--cgroup-driver=cgroupfs"'
+    insertafter: '^Environment="KUBELET_CADVISOR_ARGS=--cadvisor-port=0"'
+  tags:
+    - conf
+    - k8s_install
+
+- lineinfile:
+    path: /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+    regexp: '^Environment="KUBELET_NETWORK_ARGS='
+    state: absent
+    backup: yes
+  tags: k8s_install
+
+- name: reload systemd
+  systemd:
+    daemon_reload: yes
+  tags: k8s_install
+
+- name: Start kubelet
+  service: name=kubelet state=started enabled=yes
+  tags: k8s_install
+
+#- hosts: k8s_master
+#  gather_facts: yes
+#  become: yes
+#  tags: k8s_install
+#  tasks: 
+
+- name: Reset Kubernetes component
+  shell: "kubeadm reset"
+  register: reset_cluster
+  when: inventory_hostname in groups['k8s_master']
+  tags: k8s_install
+  
+
+#    - name: Generate cluster token
+#      command: kubeadm token generate
+#      register: kubeadm_token_generate
+#      when: K8S_token is not defined
+#      tags: k8s_install
+
+#    - set_fact: K8S_token={{ kubeadm_token_generate.stdout }}
+#      when: K8S_token is not defined
+#      tags: k8s_install
+
+#    - name: Init Kubernetes cluster
+#      when: reset_cluster|succeeded
+#      shell: "kubeadm init --token {{ K8S_token }} --apiserver-advertise-address {{ hostvars[groups[k8s_master][0]]['ansible_default_ipv4']['address'] }}"
+#      register: init_cluster
+#      tags: k8s_install
+
+#    - name: Copy the dashboard file
+#      copy: src="files/kubernetes-dashboard.yaml" dest=/tmp/kubernetes-dashboard.yaml
+#      tags: k8s_install
+
+#    - name: Install weave net and dashboard
+#      shell: |
+#        export KUBECONFIG=/etc/kubernetes/admin.conf
+#        export kubever=$(kubectl version | base64 | tr -d '\n')
+#        kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$kubever"
+#        kubectl create -f /tmp/kubernetes-dashboard.yaml
+#      tags: k8s_install
+
+    
+#- hosts: k8s_nodes
+#  gather_facts: yes
+#  become: yes
+#  tags: k8s_install
+#  tasks:
+
+#    - name: Reset Kubernetes component
+#      shell: "kubeadm reset"
+#      register: reset_cluster
+#      tags: k8s_install
+
+#    - set_fact: K8S_token={{ hostvars[groups[k8s_master][0]]['K8S_token'] }}
+#      when: K8S_token is not defined  
+#      tags: k8s_install
+
+#    - name: Join to Kubernetes cluster
+#      when: reset_cluster|succeeded
+#      shell: |
+#        kubeadm join --token {{ K8S_token }} \
+#                     {{ hostvars[groups[k8s_master][0]]['ansible_default_ipv4']['address'] }}:6443
+#      tags: [kube_join,k8s_install]
+
+- yum: name=net-snmp* state=present

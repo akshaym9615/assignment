@@ -1,0 +1,20 @@
+---
+# Variable file for K8s master and nodes
+
+docker_packages:
+  - yum-utils
+  - device-mapper-persistent-data
+  - lvm2
+  - docker
+
+kubeadm_yum_packages:
+  - kubelet-1.14.0-0
+  - kubeadm-1.14.0-0
+  - kubectl-1.14.0-0
+  - kubernetes-cni
+
+kubeadm_apt_packages:
+  - kubelet=1.14.0-00
+  - kubeadm=1.14.0-00
+  - kubectl=1.14.0-00
+  - kubernetes-cni

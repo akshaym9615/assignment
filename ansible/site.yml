@@ -1,0 +1,24 @@
+---
+
+- hosts: k8s_master,k8s_nodes
+  gather_facts: yes
+  become: yes
+  vars_files:
+    - "{{ playbook_dir }}/global_vars.yml"
+  tasks:
+  - include_role:
+      name: k8s_install_centos
+    tags: k8s_install
+    when: ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat'
+
+
+- hosts: k8s_master,k8s_nodes
+  gather_facts: yes
+  become: yes
+  vars_files:
+    - "{{ playbook_dir }}/global_vars.yml"
+  tasks:
+  - include_role:
+      name: k8s_install_ubuntu
+    tags: k8s_install
+    when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
