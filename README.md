@@ -42,7 +42,7 @@ Further adding some points here,
 3. How to use the above services with minimum downtime-
     (Let us consider the current environment as "Blue" deployment),
  
-    a) Create a kubernetes environment with all the services and configurations.
+    a) Create a kubernetes environment with all the services and configurations.<br/>
     b) We can then transfer the few traffic to green deployment by changing the
        outes/service to point to the new k8s-cluster, for minimum downtime and loads of traffic - we can have multiple pods in        k8s environment of that service (Load- Balancing).
     c) If we observe that the new green deployment is handling requests/traffic efficiently and there are no issues, then we          will be switching all the routes/services to the green deployment (few at a time) and if is not the case - we will be          switching back to blue deployment (Roll-Back).
