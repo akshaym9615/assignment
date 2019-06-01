@@ -52,5 +52,6 @@
     c) If we observe that the new green deployment is handling requests/traffic efficiently and there are no issues, then we          will be switching all the routes/services to the green deployment (few at a time) and if is not the case - we will be          switching back to blue deployment (Roll-Back).<br/>
     d) If we follow the above steps, we will have minimum downtime and the load will also be distributed, keeping the                server/service in good shape.<br/>
     e) For multiple environments for developers and testers, we can create namespaces (within that cluster) or a new cluster          separately for both the teams (which is ideal). As kubernetes is opensource, it will be very much cost efficient, only        the vms cost of aws will be there – which will be comparatively less then on-premise vms.<br/>
-    f) With end-to-end CI/CD pipeline – Bitbucket/Git -> Jenkins Pipeline -> Spinnaker, we can achieve deployment multiple            times a day just by single commit by the developer in their bitbucket.
+    f) With end-to-end CI/CD pipeline – Bitbucket/Git -> Jenkins Pipeline -> Spinnaker, we can achieve deployment multiple            times a day just by single commit by the developer in their bitbucket.<br/>
+    g) Also added Jenkinsfile for CI/CD of a service. (You just need to have your code in git(and also Jenkins installed) and        this will do everything)
 
