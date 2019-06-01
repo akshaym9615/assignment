@@ -1,8 +1,8 @@
-Assignment (Readme)
+                                                 #Assignment (Readme)
 
 
 
-Pre-requisite -
+##Pre-requisite -
 
 1.	Basic knowledge of helm, docker and k8s is required.
 2.	Helm 2.0+ must be installed with tiller for deployment process. (https://helm.sh/docs/using_helm/)
@@ -11,7 +11,7 @@ Pre-requisite -
 •	I will be deploying a simple nodejs application that give version on /version http call.
 
 
-Deployment –
+##Deployment –
 
 •	Here we will be using Helm Charts. Helm uses a packaging format called charts. A chart is a collection of files that describe a related set of Kubernetes resources.<br/>
 •	I have created the helm charts for nodejs service.
@@ -20,8 +20,8 @@ Deployment –
 1.	Now as we have K8s cluster up and running, we will be creating namespace "dev".
 2.	Build the docker image by running this command in “Dockerfile” directory –
 
-docker build -t gcr.io/zen-genius-214716/version-app:0.0.1 .
-(I was using my GCR, that’s why I tagged it with the above name)
+         docker build -t gcr.io/zen-genius-214716/version-app:0.0.1 .
+         (I was using my GCR, that’s why I tagged it with the above name)
 
 3.	Run “helm lint”. It  runs a series of tests to verify that the chart is well-formed and has no failures.
 4.	Run “helm init  --serviceaccount <deployer_rights_serviceaccount_only>”. It will initialise the helm and will install Tiller to your running Kubernetes cluster. It will also set up any necessary local configuration.
@@ -34,9 +34,9 @@ docker build -t gcr.io/zen-genius-214716/version-app:0.0.1 .
 8.	To access the webservice, just go to http://{k8s_URL}:{NodePort}.
 
 
-NOTE –
+##NOTE –
 
-Further adding some points here,
+######Further adding some points here,
 1.	For logging we can use ELK(Elasticsearch-Logstash-Kibana) stack which will also be easier for developers to analyse from a UI based logs system. 
 2.	For alerting and monitoring, we can use Prometheus/Grafana for k8s monitoring and Zabbix/Grafana for instance monitoring. If the pods or machine gets down, we will get alerts and can take the action accordingly.
 3. How to use the above services with minimum downtime-
