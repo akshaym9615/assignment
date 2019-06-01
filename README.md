@@ -13,12 +13,9 @@
 
 ## Deployment –
 
-• Since we will be using kubernetes as our orchestration tool. We need to have k8s cluster up and running. We can easily setup by following the Kubeadm documentation.(https://kubernetes.io/docs/setup/independent/install-kubeadm/)
-• If you don’t want to use the documentation, it’s fine, as I have also provided the ansible script to automate the kubernetes cluster. (Just pass the variables and you will have a running k8s cluster)
-  
-  
-• Now, there are various method to deploy the services in k8s cluster. We can use kubectl cli, Spinnaker, Helm Charts, etc.
-
+• Since we will be using kubernetes as our orchestration tool. We need to have k8s cluster up and running. We can easily setup   by following the Kubeadm documentation.(https://kubernetes.io/docs/setup/independent/install-kubeadm/)<br/>
+• If you don’t want to use the documentation, it’s fine, as I have also provided the ansible script to automate the kubernetes   cluster. (Just pass the variables and you will have a running k8s cluster)<br/>
+• Now, there are various method to deploy the services in k8s cluster. We can use kubectl cli, Spinnaker, Helm Charts, etc.<br/>
 •	Here we will be using Helm Charts. Helm uses a packaging format called charts. A chart is a collection of files that           describe a related set of Kubernetes resources.<br/>
 •	I have created the helm charts for nodejs service.
 
