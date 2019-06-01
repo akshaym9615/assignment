@@ -13,7 +13,7 @@ Pre-requisite -
 
 Deployment –
 
-•	Here we will be using Helm Charts. Helm uses a packaging format called charts. A chart is a collection of files that describe a related set of Kubernetes resources.
+•	Here we will be using Helm Charts. Helm uses a packaging format called charts. A chart is a collection of files that describe a related set of Kubernetes resources.<br/>
 •	I have created the helm charts for nodejs service.
 
 •	Now the deployment steps will be as follows –
@@ -44,9 +44,9 @@ Further adding some points here,
  
     a) Create a kubernetes environment with all the services and configurations.<br/>
     b) We can then transfer the few traffic to green deployment by changing the
-       outes/service to point to the new k8s-cluster, for minimum downtime and loads of traffic - we can have multiple pods in        k8s environment of that service (Load- Balancing).
-    c) If we observe that the new green deployment is handling requests/traffic efficiently and there are no issues, then we          will be switching all the routes/services to the green deployment (few at a time) and if is not the case - we will be          switching back to blue deployment (Roll-Back).
-    d) If we follow the above steps, we will have minimum downtime and the load will also be distributed, keeping the                server/service in good shape.
-    e) For multiple environments for developers and testers, we can create namespaces (within that cluster) or a new cluster          separately for both the teams (which is ideal). As kubernetes is opensource, it will be very much cost efficient, only        the vms cost of aws will be there – which will be comparatively less then on-premise vms.
+       outes/service to point to the new k8s-cluster, for minimum downtime and loads of traffic - we can have multiple pods in        k8s environment of that service (Load- Balancing).<br/>
+    c) If we observe that the new green deployment is handling requests/traffic efficiently and there are no issues, then we          will be switching all the routes/services to the green deployment (few at a time) and if is not the case - we will be          switching back to blue deployment (Roll-Back).<br/>
+    d) If we follow the above steps, we will have minimum downtime and the load will also be distributed, keeping the                server/service in good shape.<br/>
+    e) For multiple environments for developers and testers, we can create namespaces (within that cluster) or a new cluster          separately for both the teams (which is ideal). As kubernetes is opensource, it will be very much cost efficient, only        the vms cost of aws will be there – which will be comparatively less then on-premise vms.<br/>
     f) With end-to-end CI/CD pipeline – Bitbucket/Git -> Jenkins Pipeline -> Spinnaker, we can achieve deployment multiple            times a day just by single commit by the developer in their bitbucket.
 
